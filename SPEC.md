@@ -48,11 +48,11 @@
       - users (username, hashed password, display name)
       - rounds (which user, my move, robot move, result, time)
 
-The robot picks its move without seeing my current move. **The core rules live in `rules.py`.** Results are saved under my account only, and the dashboard reads only my rows.
+The robot picks its move without seeing my current move. **The core rules live in rules.py.** Results are saved under my account only, and the dashboard reads only my rows.
 
 ### Pattern experiment
 - **Problem:** The robot needs a way to choose its move, and I may want more than one robot style later.
-- **Two approaches:** (A) a simple if/else inside the game code, or (B) the Strategy pattern, where each robot style is its own small function, like `sneaky_robot(history)`, that the game can swap in.
+- **Two approaches:** (A) a simple if/else inside the game code, or (B) the Strategy pattern, where each robot style is its own small function, like sneaky_robot(history), that the game can swap in.
 - **Planned comparison:** Build B and test both robot functions with the same move histories. Keep B only if it makes adding or testing a robot easier than the if/else; otherwise go back to the simpler code.
 
 ### AI experiment
