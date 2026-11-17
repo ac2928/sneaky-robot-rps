@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS login_sessions (
 );
 CREATE TABLE IF NOT EXISTS rounds (
  id INTEGER PRIMARY KEY, user_id INTEGER NOT NULL REFERENCES users(id),
- bot TEXT NOT NULL CHECK(bot IN ('clockwork', 'habit-reader')),
+ bot TEXT NOT NULL CHECK(bot IN ('clockwork', 'habit-reader', 'sneaky-robot')),
  player_move TEXT, bot_move TEXT,
  outcome TEXT CHECK(outcome IN ('win', 'loss', 'tie')),
  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%S', 'now'))
