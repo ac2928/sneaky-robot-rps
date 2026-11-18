@@ -1,0 +1,14 @@
+[MAIN]
+# Pylint settings for this project. Each disabled rule has a reason.
+
+[MESSAGES CONTROL]
+disable=
+    missing-module-docstring,    # small modules; the README and SPEC explain them
+    missing-class-docstring,
+    missing-function-docstring,  # test names already say what they check
+    redefined-outer-name,        # this is how pytest fixtures work
+    line-too-long,               # Black handles formatting; long strings are SQL/HTML
+    import-outside-toplevel      # Flask app factory imports blueprints inside create_app
+
+[FORMAT]
+max-line-length=100

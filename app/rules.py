@@ -1,4 +1,5 @@
 """The rules do not depend on Flask, a database, or the interface."""
+
 from collections import Counter
 
 MOVES = ("rock", "paper", "scissors")
@@ -48,5 +49,13 @@ def sneaky_robot(history):
     return counter_move(guess)
 
 
-STRATEGIES = {"clockwork": clockwork, "habit-reader": habit_reader, "sneaky-robot": sneaky_robot}
-BOT_NAMES = {"clockwork": "Clockwork", "habit-reader": "Habit Reader", "sneaky-robot": "Sneaky Robot"}
+STRATEGIES = {
+    "clockwork": clockwork,
+    "habit-reader": habit_reader,
+    "sneaky-robot": sneaky_robot,
+}
+BOT_NAMES = {
+    "clockwork": "Clockwork",
+    "habit-reader": "Habit Reader",
+    "sneaky-robot": "Sneaky Robot",
+}

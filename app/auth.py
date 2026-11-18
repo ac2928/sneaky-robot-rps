@@ -1,11 +1,28 @@
 """Flask-Login identifies users; database records allow immediate revocation."""
+
 import re
 import secrets
 import sqlite3
 import time
 
-from flask import Blueprint, abort, flash, jsonify, redirect, render_template, request, session, url_for
-from flask_login import LoginManager, UserMixin, current_user, login_required, login_user, logout_user
+from flask import (
+    Blueprint,
+    flash,
+    jsonify,
+    redirect,
+    render_template,
+    request,
+    session,
+    url_for,
+)
+from flask_login import (
+    LoginManager,
+    UserMixin,
+    current_user,
+    login_required,
+    login_user,
+    logout_user,
+)
 from werkzeug.security import check_password_hash, generate_password_hash
 from .db import get_db
 
@@ -24,10 +41,17 @@ class User(UserMixin):
 @login_manager.user_loader
 def load_user(user_id):
     # A signed cookie alone is insufficient: require a live server-side record.
-    row = get_db().execute("""
+    row = (
+        get_db()
+        .execute(
+            """
       SELECT u.* FROM users u JOIN login_sessions s ON s.user_id=u.id
       WHERE u.id=? AND s.id=? AND s.auth_version=u.auth_version AND s.expires_at>?
-    """, (user_id, session.get("login_id", ""), int(time.time()))).fetchone()
+    """,
+            (user_id, session.get("login_id", ""), int(time.time())),
+        )
+        .fetchone()
+    )
     return User(row) if row else None
 
 
@@ -44,7 +68,10 @@ def establish_session(row):
     login_id = secrets.token_urlsafe(32)
     db = get_db()
     db.execute("DELETE FROM login_sessions WHERE expires_at<=?", (int(time.time()),))
-    db.execute("INSERT INTO login_sessions VALUES (?,?,?,?)", (login_id, row["id"], row["auth_version"], int(time.time()) + 8 * 3600))
+    db.execute(
+        "INSERT INTO login_sessions VALUES (?,?,?,?)",
+        (login_id, row["id"], row["auth_version"], int(time.time()) + 8 * 3600),
+    )
     db.commit()
     session["login_id"] = login_id
     session.permanent = True
@@ -69,9 +96,14 @@ def register():
         if not error:
             db = get_db()
             try:
-                cursor = db.execute("INSERT INTO users (username,display_name,password_hash) VALUES (?,?,?)", (username, display_name, generate_password_hash(password)))
+                cursor = db.execute(
+                    "INSERT INTO users (username,display_name,password_hash) VALUES (?,?,?)",
+                    (username, display_name, generate_password_hash(password)),
+                )
                 db.commit()
-                row = db.execute("SELECT * FROM users WHERE id=?", (cursor.lastrowid,)).fetchone()
+                row = db.execute(
+                    "SELECT * FROM users WHERE id=?", (cursor.lastrowid,)
+                ).fetchone()
             except sqlite3.IntegrityError:
                 db.rollback()
                 error = "That username is taken. Try another one."
@@ -90,8 +122,16 @@ def login():
     if request.method == "POST":
         username = request.form.get("username", "").strip().lower()
         password = request.form.get("password", "")
-        row = get_db().execute("SELECT * FROM users WHERE username=?", (username,)).fetchone()
-        if row and len(password) <= 128 and check_password_hash(row["password_hash"], password):
+        row = (
+            get_db()
+            .execute("SELECT * FROM users WHERE username=?", (username,))
+            .fetchone()
+        )
+        if (
+            row
+            and len(password) <= 128
+            and check_password_hash(row["password_hash"], password)
+        ):
             establish_session(row)
             flash("Welcome back.", "success")
             return redirect(url_for("game.dashboard"), 303)
@@ -120,7 +160,10 @@ def account():
             flash("Use a display name of 1–40 characters.", "error")
         else:
             db = get_db()
-            db.execute("UPDATE users SET display_name=? WHERE id=?", (display_name, current_user.id))
+            db.execute(
+                "UPDATE users SET display_name=? WHERE id=?",
+                (display_name, current_user.id),
+            )
             db.commit()
             flash("Display name updated.", "success")
             return redirect(url_for("auth.account"), 303)
@@ -144,11 +187,17 @@ def password():
     elif new == previous:
         flash("Choose a different new password.", "error")
     else:
-        db.execute("UPDATE users SET password_hash=?,auth_version=auth_version+1 WHERE id=?", (generate_password_hash(new), current_user.id))
+        db.execute(
+            "UPDATE users SET password_hash=?,auth_version=auth_version+1 WHERE id=?",
+            (generate_password_hash(new), current_user.id),
+        )
         db.execute("DELETE FROM login_sessions WHERE user_id=?", (current_user.id,))
         db.commit()
         logout_user()
         session.clear()
-        flash("Password changed. All sessions were signed out. Sign in with your new password.", "success")
+        flash(
+            "Password changed. All sessions were signed out. Sign in with your new password.",
+            "success",
+        )
         return redirect(url_for("auth.login"), 303)
     return redirect(url_for("auth.account"), 303)
