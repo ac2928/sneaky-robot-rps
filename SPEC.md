@@ -2,6 +2,7 @@
 
 ## Project and current status
 - **Audience:** casual players who like beating a computer.
+- **Persona (a guess to test, not a fact):** a casual player who likes beating the computer and comes back to see if they're getting harder to predict.
 - **Main task:** play Rock, Paper, Scissors against a sneaky robot that tries to predict my next move, then see my saved results.
 - **Dream:** A robot opponent with a personality that learns my habits, taunts me when it predicts me right, and gets smarter the more I play.
 - **Promise:** A casual player can sign up, play RPS against a sneaky robot that tries to predict their next move, see their saved wins/losses/ties on a private dashboard, and update their display name and password.
@@ -9,7 +10,7 @@
 - **Stack:** Python 3.12 + Flask + SQLite + Flask-Login, tested with pytest. Same language and test tools I used for RPS-001, and the course's Bot Lab example uses this stack with working accounts and saved scores, so I can build on a checked foundation and focus on the sneaky robot.
 - **Deferred:** public leaderboard, multiplayer, email/password reset, online hosting.
 - **Repository:** https://github.com/ac2928/sneaky-robot-rps
-- **Current stage:** Review 1 (Plan). No code yet. Checks: none run yet (planning stage).
+- **Current stage:** Review 2 (First slice). Built on the course Bot Lab foundation; added my Sneaky Robot. Checks run: 37 tests, Black, Pylint and CI pass; browser walkthrough done (see section 2).
 
 ## 1 · Plan
 
@@ -119,3 +120,50 @@ Browser → Flask (auth.py, game.py, rules.py, templates) → SQLite (users, ses
 
 ### Help received
 Claude (chat assistant) explained the assignment and helped me organize my decisions; I chose the concepts, audience, and plan.
+
+## 2 · First slice (Review 2)
+
+### What I built
+- Started from the course **Bot Lab** (Flask + Flask-Login + SQLite, 30 tests). Commit: "Start from course Bot Lab foundation."
+- Added my **Sneaky Robot** in `rules.py`: it looks at what I played right after my last move in earlier rounds, guesses I'll do it again, and plays the move that beats it. No history or no pattern yet → rock.
+- Added it to the database's allowed opponents (`db.py`), the opponent dropdown and the game page text.
+- Added Black + Pylint (`.pylintrc`, each disabled rule has a reason) and a GitHub Actions CI workflow.
+
+### Checks I actually ran
+| Check | Result |
+|---|---|
+| `pytest` (30 Bot Lab + 7 mine in `tests/test_sneaky.py`) | 37 passed |
+| My test that the robot never sees my current move | Passed |
+| Black / Pylint | Clean / 10.00 |
+| GitHub Actions CI | Green (run link in Canvas) |
+| Browser: create account → play Sneaky Robot ×3 → dashboard shows 3 saved rounds | Worked |
+| Browser: stop and restart the server → rounds still there | Worked |
+| Browser: sign out → open `/dashboard` directly → "Sign in to continue" | Worked |
+
+**Not checked yet (planned):** two-account isolation in the browser (covered only by Bot Lab's tests so far), Playwright end-to-end tests, real classmate review.
+
+### Observation
+In my 3 browser rounds the robot played rock every time. That's correct by my rule: I never repeated a move pair, so it had no pattern. It might feel boring at first; I'll ask a classmate whether it does.
+
+### Pattern experiment: Strategy vs if/else
+| | Strategy (what I used) | Simple if/else |
+|---|---|---|
+| Adding Sneaky Robot | 1 new function + 1 entry in `STRATEGIES`; `game.py` unchanged | Add another `elif` branch inside the `move()` route in `game.py` |
+| Testing a robot | Call `sneaky_robot([...])` directly, no web server needed | Robot logic is inside a web route, so tests need the app + database |
+| Downside | One more idea to understand (a dict of functions) | Fewer pieces at first |
+
+**Decision:** keep Strategy. Adding my robot didn't touch the game code, and I could test it with plain lists. (The if/else version was compared on paper against the real code, not built and run.)
+
+### Design experiment: two presentation approaches
+- **A · Calm explainer (current):** after each round, show the moves and result, plus one line explaining how the robot thinks.
+- **B · Sneaky personality:** after each round the robot reveals its guess ("I knew you'd play paper!").
+- **Choice for this slice:** A, because it's clear and already checked. B fits my Dream and is planned for Review 3 if a classmate finds A boring. (B is not built yet.)
+
+### AI note (expectation → result → next time)
+- **Expected:** the AI might let the robot see my current move (cheating).
+- **Result:** I wrote my tests first, including a cheating check, and saw them fail before the robot existed. With the robot added, 36 passed and 1 failed: the database only allowed the two original robots. The test caught it, I updated `db.py`, and all 37 passed. The robot only receives earlier, completed rounds.
+- **Next time:** before coding, ask the AI to list every place a new opponent must be registered (rules, database, pages).
+
+### Help received
+- Course Bot Lab: accounts, saving, dashboard and 30 tests.
+- Claude explained steps and drafted code; I decided the robot's expected moves, ran every check myself, and fixed the failures.
